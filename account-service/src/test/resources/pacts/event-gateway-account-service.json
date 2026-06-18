@@ -1,0 +1,108 @@
+{
+  "consumer": {
+    "name": "event-gateway"
+  },
+  "provider": {
+    "name": "account-service"
+  },
+  "interactions": [
+    {
+      "type": "Synchronous/HTTP",
+      "description": "apply a credit transaction",
+      "providerStates": [
+        {
+          "name": "account acct-1 can accept transactions"
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "path": "/accounts/acct-1/transactions",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "body": {
+          "content": {
+            "eventId": "evt-contract-1",
+            "type": "CREDIT",
+            "amount": 150.00,
+            "currency": "USD",
+            "eventTimestamp": "2026-05-15T14:02:11Z"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        }
+      },
+      "response": {
+        "status": 201
+      }
+    },
+    {
+      "type": "Synchronous/HTTP",
+      "description": "fetch the balance",
+      "providerStates": [
+        {
+          "name": "account acct-1 can accept transactions"
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/accounts/acct-1/balance"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ]
+        },
+        "body": {
+          "content": {
+            "accountId": "acct-1",
+            "balance": 150.00,
+            "currency": "USD"
+          },
+          "contentType": "application/json",
+          "encoded": false
+        },
+        "matchingRules": {
+          "body": {
+            "$.accountId": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$.balance": {
+              "matchers": [
+                {
+                  "match": "number"
+                }
+              ],
+              "combine": "AND"
+            },
+            "$.currency": {
+              "matchers": [
+                {
+                  "match": "type"
+                }
+              ],
+              "combine": "AND"
+            }
+          }
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "4.0"
+    },
+    "pact-jvm": {
+      "version": "4.6.17"
+    }
+  }
+}

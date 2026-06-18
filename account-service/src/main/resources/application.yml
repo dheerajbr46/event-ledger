@@ -1,0 +1,47 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: account-service
+  threads:
+    virtual:
+      enabled: true            # JDK 25 virtual threads: blocking model, high concurrency
+  datasource:
+    url: jdbc:h2:mem:accountdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+  endpoint:
+    health:
+      show-details: always
+  tracing:
+    sampling:
+      probability: 1.0         # trace every request in this demo
+  opentelemetry:
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+  otlp:
+    metrics:
+      export:
+        enabled: false         # metrics go to Prometheus; only traces go via OTLP
+
+# Spring Boot native structured logging (JSON to console), includes MDC -> trace.id / span.id
+logging:
+  structured:
+    format:
+      console: ecs
+  level:
+    com.example.account: INFO
