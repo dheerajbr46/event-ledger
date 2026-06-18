@@ -1,0 +1,67 @@
+services:
+  account-service:
+    build:
+      context: .
+      dockerfile: account-service/Dockerfile
+    image: event-ledger/account-service:1.0.0
+    container_name: account-service
+    ports:
+      - "8081:8081"
+    environment:
+      OTEL_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+    depends_on:
+      - otel-collector
+    networks:
+      - ledger
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    image: event-ledger/gateway:1.0.0
+    container_name: gateway
+    ports:
+      - "8080:8080"
+    environment:
+      # Service discovery by container name on the shared bridge network.
+      ACCOUNT_SERVICE_URL: http://account-service:8081
+      OTEL_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+    depends_on:
+      # 'service_started' (not 'service_healthy') is intentional: the gateway's circuit breaker
+      # and retry handle the account-service not being ready yet, so startup order is forgiving.
+      account-service:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    networks:
+      - ledger
+
+  # Receives OTLP spans from both services and forwards them to Jaeger.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4318:4318"   # OTLP HTTP (exposed for local apps run outside Docker, optional)
+      - "4317:4317"   # OTLP gRPC
+    depends_on:
+      - jaeger
+    networks:
+      - ledger
+
+  # Trace backend + UI. Accepts OTLP directly from the collector.
+  jaeger:
+    image: jaegertracing/all-in-one:1.62.0
+    container_name: jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686" # Jaeger UI -> http://localhost:16686
+    networks:
+      - ledger
+
+networks:
+  ledger:
+    driver: bridge
