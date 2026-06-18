@@ -97,7 +97,7 @@ The Spring Boot 4.1 parent POM does not configure `annotationProcessorPaths`, so
 ```
 POST /events
   └─ AccountClient (@CircuitBreaker)           ← Resilience4j circuit breaker
-       └─ AccountHttpCaller (@Retry)           ← Resilience4j retry (2 attempts, 200ms, 2× backoff)
+       └─ AccountHttpCaller (@Retry)           ← Resilience4j retry (2 attempts, 200ms, 2× backoff, 50% jitter)
             └─ RestClient → Account Service
 ```
 

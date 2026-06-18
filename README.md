@@ -53,7 +53,7 @@ client ──▶ Gateway (8080) ──HTTP──▶ Account Service (8081)
 docker compose up --build
 ```
 
-Gateway on `http://localhost:8080`, Account Service on `http://localhost:8081`. The gateway reaches the account service by container name via `ACCOUNT_SERVICE_URL`.
+Gateway on `http://localhost:8080`. The gateway reaches the account service by container name via `ACCOUNT_SERVICE_URL`. The Account Service port is **not** published to the host — it is internal to the `ledger` Docker network by design, reachable only by the gateway container.
 
 Compose also starts the tracing backend:
 
@@ -195,6 +195,6 @@ The gateway (consumer `event-gateway`) declares the interactions it needs from t
 
 ## Bonus extensions — implemented
 
-All four stretch goals are in place: **OTel Collector + Jaeger** span visualisation, the **scheduled replay job** for `FAILED`/`RECEIVED` events, **per-client rate limiting** at the gateway, and **Pact consumer-driven contract tests** between the two services. See the corresponding subsections under *Design decisions* above.
+All five stretch goals are in place: **OTel Collector + Jaeger** span visualisation, the **scheduled replay job** for `FAILED`/`RECEIVED` events, **per-client rate limiting** at the gateway, **Pact consumer-driven contract tests** between the two services, and **exponential backoff with jitter** on the account-service retry (50% randomized factor — prevents thundering-herd on recovery). See the corresponding subsections under *Design decisions* above.
 
 Still open if taken further: swap the committed pact for a Pact Broker with `can-i-deploy` gating; add Grafana/Prometheus dashboards alongside Jaeger; and move replay claiming to `SELECT … FOR UPDATE SKIP LOCKED` for multi-instance gateways.

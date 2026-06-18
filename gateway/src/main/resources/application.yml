@@ -52,6 +52,7 @@ resilience4j:
         enable-exponential-backoff: true
         exponential-backoff-multiplier: 2.0
         exponential-max-wait-duration: 2000ms
+        randomized-wait-factor: 0.5
         retry-exceptions:
           - io.eventledger.gateway.client.RemoteCallException
   ratelimiter:

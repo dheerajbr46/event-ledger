@@ -5,8 +5,8 @@ services:
       dockerfile: account-service/Dockerfile
     image: event-ledger/account-service:1.0.0
     container_name: account-service
-    ports:
-      - "8081:8081"
+    # No ports published: account-service is internal only, reachable by container name
+    # on the ledger network (http://account-service:8081). Not accessible from the host.
     environment:
       OTEL_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
     depends_on:

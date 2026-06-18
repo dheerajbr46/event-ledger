@@ -11,7 +11,8 @@
 #   terminal 3: bash scripts/e2e.sh
 #
 #   Gateway:         http://localhost:8080
-#   Account Service: http://localhost:8081
+#   Account Service: http://localhost:8081  (directly reachable under Maven only;
+#                    not published to the host under Docker Compose — internal by design)
 
 set -uo pipefail
 
@@ -21,6 +22,13 @@ RUN=$$                        # unique suffix so repeated runs don't collide on 
 ACCOUNT="acct-e2e-$RUN"
 PASS=0
 FAIL=0
+
+# Detect Docker Compose mode: account-service container running means port is intentionally
+# NOT published to the host. Maven mode: both services bind to localhost directly.
+DOCKER_MODE=false
+if docker ps --filter "name=^/account-service$" --filter status=running -q 2>/dev/null | grep -q .; then
+    DOCKER_MODE=true
+fi
 
 green() { printf '\033[0;32m  ✅  %s\033[0m\n' "$*"; }
 red()   { printf '\033[0;31m  ❌  %s\033[0m\n' "$*"; }
@@ -63,10 +71,6 @@ if ! curl -sf "$GW/health" > /dev/null 2>&1; then
     echo "Gateway is not reachable at $GW — start both services first."
     exit 1
 fi
-if ! curl -sf "$AS/health" > /dev/null 2>&1; then
-    echo "Account Service is not reachable at $AS — start both services first."
-    exit 1
-fi
 
 # ── Health ───────────────────────────────────────────────────────────────────
 section "Health"
@@ -74,8 +78,20 @@ section "Health"
 GW_STATUS=$(curl -s "$GW/health" | json_field status)
 check_value "Gateway /health → UP" "$GW_STATUS" "UP"
 
-AS_STATUS=$(curl -s "$AS/health" | json_field status)
-check_value "Account Service /health → UP" "$AS_STATUS" "UP"
+if $DOCKER_MODE; then
+    # Docker Compose mode: port is not published — direct host access must be refused.
+    if curl -sf --connect-timeout 2 --max-time 3 "$AS/health" > /dev/null 2>&1; then
+        red "Account Service directly accessible at $AS — port should NOT be published (isolation broken)"
+        FAIL=$((FAIL + 1))
+    else
+        green "Account Service not directly accessible from host (internal network — isolation correct)"
+        PASS=$((PASS + 1))
+    fi
+else
+    # Maven mode: both services bind to localhost — direct access is expected and required.
+    AS_STATUS=$(curl -s "$AS/health" | json_field status)
+    check_value "Account Service /health → UP (direct, Maven mode)" "$AS_STATUS" "UP"
+fi
 
 # ── Submit events ────────────────────────────────────────────────────────────
 section "Submit events"
