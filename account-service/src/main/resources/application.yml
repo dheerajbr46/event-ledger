@@ -44,4 +44,4 @@ logging:
     format:
       console: ecs
   level:
-    com.example.account: INFO
+    io.eventledger.account: INFO

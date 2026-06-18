@@ -43,7 +43,7 @@ resilience4j:
         register-health-indicator: true
         # Only genuine availability failures move the breaker; 4xx/validation do not.
         record-exceptions:
-          - com.example.gateway.client.RemoteCallException
+          - io.eventledger.gateway.client.RemoteCallException
   retry:
     instances:
       accountService:
@@ -53,7 +53,7 @@ resilience4j:
         exponential-backoff-multiplier: 2.0
         exponential-max-wait-duration: 2000ms
         retry-exceptions:
-          - com.example.gateway.client.RemoteCallException
+          - io.eventledger.gateway.client.RemoteCallException
   ratelimiter:
     configs:
       default:
@@ -90,4 +90,4 @@ logging:
     format:
       console: ecs
   level:
-    com.example.gateway: INFO
+    io.eventledger.gateway: INFO

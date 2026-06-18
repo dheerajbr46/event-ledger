@@ -11,7 +11,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.example</groupId>
+    <groupId>io.eventledger</groupId>
     <artifactId>event-ledger</artifactId>
     <version>1.0.0</version>
     <packaging>pom</packaging>
