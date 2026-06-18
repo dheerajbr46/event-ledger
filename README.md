@@ -80,6 +80,14 @@ The gateway defaults to `http://localhost:8081` for the account service when `AC
 mvn test
 ```
 
+To verify the full stack end-to-end (both services must be running first):
+
+```bash
+bash scripts/e2e.sh
+```
+
+Covers health, idempotency, out-of-order ordering, balance, validation, and Prometheus metrics — 19 checks in total. Works against both the Docker Compose stack and the Maven two-terminal setup.
+
 ---
 
 ## API
