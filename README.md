@@ -1,5 +1,7 @@
 # Event Ledger
 
+[![CI](https://github.com/dheerajbr46/event-ledger/actions/workflows/ci.yml/badge.svg)](https://github.com/dheerajbr46/event-ledger/actions/workflows/ci.yml)
+
 Two cooperating microservices that ingest financial transaction events and maintain per-account balances.
 
 - **Gateway** (`gateway`, port `8080`) — the only public-facing service. Accepts events, persists them, and forwards them to the Account Service through a resilient client.
